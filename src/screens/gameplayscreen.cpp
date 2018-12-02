@@ -14,7 +14,7 @@ GameplayScreen::GameplayScreen(TheVaker2 *game)
 
 void GameplayScreen::show()
 {
-
+    resetGameLogic();
 }
 
 void GameplayScreen::hide()
@@ -30,7 +30,7 @@ void GameplayScreen::render()
     m_game->assets.barrels.draw(0,0);
 
     for( int i = 0; i < 3; i++ ) {
-        const auto& rana = m_gameLogic.ranas()[i];
+        const auto& rana = m_gameLogic->ranas()[i];
         if( rana != nullptr ) {
             drawRana(rana, i);
         }
@@ -38,45 +38,63 @@ void GameplayScreen::render()
 
     drawHand();
 
-    auto numBullets = m_gameLogic.player().numBullets();
+    auto numBullets = m_gameLogic->player().numBullets();
     m_game->assets.bullets[numBullets].draw(0,0);
-
     m_game->assets.star.draw(0,0);
 
-    static std::string points = std::to_string(m_gameLogic.playerPoints());
+    static std::string points = "";
+    points = std::to_string(m_gameLogic->playerPoints());
 
     float x = 75;
     if( points.size() == 2 ) {
         x = 60;
     }
     m_game->assets.pointsFont.print(points.c_str(), x, 350);
+    std::cout << points << std::endl;
+    std::cout << m_gameLogic->playerPoints() << std::endl;
+
+    if( m_gameLogic->gameFinished() ) {
+        m_game->assets.pointsFont.print("Press ENTER to replay", 10, 10);
+    }
 }
 
 
 void GameplayScreen::update(uint64_t delta)
 {
-    m_gameLogic.update(delta);
+    m_gameLogic->update(delta);
 
+    if( m_gameLogic->gameFinished() ) {
+        if( aether::core::is_key_just_pressed(aether::core::KeyCode::Enter) ) {
+            resetGameLogic();
+        }
+    }
+
+    int n = -1;
     if( aether::core::is_key_just_pressed(aether::core::KeyCode::Q) ) {
-        m_gameLogic.shootHappened(0);
+        n = 0;
     }
     if( aether::core::is_key_just_pressed(aether::core::KeyCode::W) ) {
-        m_gameLogic.shootHappened(1);
+        n = 1;
     }
     if( aether::core::is_key_just_pressed(aether::core::KeyCode::E) ) {
-        m_gameLogic.shootHappened(2);
+        n = 2;
     }
 
+    if( n != -1 ) {
+        m_gameLogic->shootHappened(n);
+    }
+
+
     if( aether::core::is_key_just_pressed(aether::core::KeyCode::R) ) {
-        m_gameLogic.reload();
+        m_gameLogic->reload();
     }
 }
 
 void GameplayScreen::drawHand()
 {
-    if( m_gameLogic.player().state() != State::Dead ) {
+    if( m_gameLogic->player().state() != State::Dead ) {
         aether::graphics::Texture player_tex;
-        switch(m_gameLogic.player().state()) {
+        switch(m_gameLogic->player().state()) {
         case State::OnGuard: {
             player_tex = m_game->assets.hand_wait;
         } break;
@@ -86,11 +104,21 @@ void GameplayScreen::drawHand()
         case State::Reloading: {
             player_tex = m_game->assets.hand_reloading;
         } break;
+        case State::Puffed: {
+            auto playerTimer = m_gameLogic->player().timer();
+            if( playerTimer <= 0 ) {
+                player_tex = m_game->assets.hand_dead;
+            } else if( playerTimer  < Config::TimePuffing / 2 ) {
+                player_tex = m_game->assets.hand_explosion_2;
+            } else {
+                player_tex = m_game->assets.hand_explosion;
+            }
+        } break;
         default: {
             assert(false && "State not recognised");
         } break;
         }
-        auto player_x = m_gameLogic.player().x();
+        auto player_x = m_gameLogic->player().x();
         player_tex.draw(player_x, 50);
     }
 }
@@ -111,4 +139,9 @@ void GameplayScreen::drawRana(const std::unique_ptr<Rana>& rana, int i)
     };
 
     rana_render_map[rana->state()].draw(-225 + rana->x() + i * 200, rana->y() - 20);
+}
+
+void GameplayScreen::resetGameLogic()
+{
+    m_gameLogic = std::make_unique<GameLogic>();
 }

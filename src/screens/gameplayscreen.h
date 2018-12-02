@@ -21,8 +21,10 @@ private:
     void drawHand();
     void drawRana(const std::unique_ptr<Rana>&   entity, int i);
 
+    void resetGameLogic();
+
     TheVaker2* m_game;
 
-    GameLogic m_gameLogic;
+    std::unique_ptr<GameLogic> m_gameLogic;
 
 };

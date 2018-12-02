@@ -8,6 +8,8 @@ class Assets
 {
 public:
 
+    static Assets* instance;
+
     void load()
     {
         barrels.load("assets/barrels.png");
@@ -16,6 +18,9 @@ public:
         hand_shoot.load("assets/hand_shoot.png");
         hand_wait.load("assets/hand_wait.png");
         hand_reloading.load("assets/hand_reloading.png");
+        hand_dead.load("assets/hand_dead.png");
+        hand_explosion.load("assets/hand_explosion.png");
+        hand_explosion_2.load("assets/hand_explosion_2.png");
         rana_aiming.load("assets/rana_aiming.png");
         rana_cover.load("assets/rana_cover.png");
         rana_dead.load("assets/rana_dead.png");
@@ -24,11 +29,18 @@ public:
         star.load("assets/star.png");
 
         pointsFont.load("assets/WEST____.TTF", 80);
+        textFont.load("assets/WEST____.TTF", 40);
 
         for( int i = 0; i < 7; i++ ) {
             std::string path = "assets/bullets_" + std::to_string(i) + ".png";
             bullets[i].load(path.c_str());
         }
+
+        theme.load("assets/bso.ogg");
+
+        shoot.load("assets/shoot.wav");
+        reload.load("assets/reload.wav");
+        explosion.load("assets/explosion.wav");
     }
 
     void cleanup()
@@ -38,6 +50,10 @@ public:
         building.destroy();
         hand_shoot.destroy();
         hand_wait.destroy();
+        hand_reloading.destroy();
+        hand_dead.destroy();
+        hand_explosion.destroy();
+        hand_explosion_2.destroy();
         rana_aiming.destroy();
         rana_cover.destroy();
         rana_dead.destroy();
@@ -50,6 +66,11 @@ public:
         }
 
         pointsFont.destroy();
+        textFont.destroy();
+
+        shoot.destroy();
+        reload.destroy();
+        explosion.destroy();
 
     }
 
@@ -60,6 +81,9 @@ public:
     aether::graphics::Texture hand_shoot;
     aether::graphics::Texture hand_wait;
     aether::graphics::Texture hand_reloading;
+    aether::graphics::Texture hand_dead;
+    aether::graphics::Texture hand_explosion;
+    aether::graphics::Texture hand_explosion_2;
     aether::graphics::Texture rana_aiming;
     aether::graphics::Texture rana_cover;
     aether::graphics::Texture rana_dead;
@@ -68,6 +92,12 @@ public:
     aether::graphics::Texture star;
 
     aether::graphics::Font pointsFont;
+    aether::graphics::Font textFont;
 
+    aether::audio::Stream theme;
+
+    aether::audio::Sample shoot;
+    aether::audio::Sample reload;
+    aether::audio::Sample explosion;
 
 };
